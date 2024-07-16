@@ -1,4 +1,4 @@
-name: Django CI (Continous Integration)
+name: Django CI (Continuous Integration)
 
 on:
   push:
@@ -68,7 +68,7 @@ jobs:
         echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
         echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> .env
         echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
-        echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" >> .env
+        echo "DATABASE_HOST=127.0.0.1" >> .env  # MySQL 서비스 호스트 설정
         echo "DATABASE_PORT=3306" >> .env
         echo "KAKAO_LOGIN_URL=${{ secrets.KAKAO_LOGIN_URL }}" >> .env
         echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> .env
@@ -87,6 +87,11 @@ jobs:
     - name: Wait for MySQL to be ready
       run: ./wait-for-it.sh 127.0.0.1:3306 --timeout=60 --strict -- echo "MySQL is up"
 
+    - name: Test MySQL connection
+      run: |
+        sudo apt-get install -y mysql-client
+        mysql --host=127.0.0.1 --user=${{ secrets.DATABASE_USER }} --password=${{ secrets.DATABASE_PASSWORD }} --database=${{ secrets.DATABASE_NAME }} -e "SHOW TABLES;"
+
     - name: Run migrations
       working-directory: ./TransFarmers
       run: |
@@ -101,12 +106,6 @@ jobs:
         chmod +x find_test_modules.sh
         TEST_MODULES=$(./find_test_modules.sh)
         echo "TEST_MODULES=$TEST_MODULES" >> $GITHUB_ENV
-
-    - name: Run tests
-      working-directory: ./TransFarmers
-      run: |
-        source .venv/bin/activate
-        python manage.py test $TEST_MODULES
 
     - name: Run tests
       working-directory: ./TransFarmers
