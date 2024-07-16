@@ -72,11 +72,13 @@ jobs:
         mysql password: ${{ secrets.DATABASE_PASSWORD }}
 
     - name: Run migrations
+      working-directory: ./TransFarmers
       run: |
         source .venv/bin/activate
         python manage.py migrate --noinput
 
     - name: Find test modules
+      working-directory: ./TransFarmers
       id: find_tests
       run: |
         source .venv/bin/activate
@@ -85,6 +87,7 @@ jobs:
         echo "TEST_MODULES=$TEST_MODULES" >> $GITHUB_ENV
 
     - name: Run tests
+      working-directory: ./TransFarmers
       run: |
         source .venv/bin/activate
         python manage.py test $TEST_MODULES
