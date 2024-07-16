@@ -8,22 +8,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd "mysqladmin ping --silent"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.DATABASE_NAME }}
-          MYSQL_USER: ${{ secrets.DATABASE_USER }}
-          MYSQL_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -79,18 +63,13 @@ jobs:
         echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
         echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
 
-    - name: Add wait-for-it script
-      run: |
-        wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh
-        chmod +x wait-for-it.sh
-
-    - name: Wait for MySQL to be ready
-      run: ./wait-for-it.sh 127.0.0.1:3306 --timeout=60 --strict -- echo "MySQL is up"
-
-    - name: Test MySQL connection
-      run: |
-        sudo apt-get install -y mysql-client
-        mysql --host=127.0.0.1 --user=${{ secrets.DATABASE_USER }} --password=${{ secrets.DATABASE_PASSWORD }} --database=${{ secrets.DATABASE_NAME }} -e "SHOW TABLES;"
+    - name: Setup MySQL
+      uses: samin/mysql-action@v1
+      with:
+        character set server: 'utf8'
+        mysql database: ${{ secrets.DATABASE_NAME }}
+        mysql user: ${{ secrets.DATABASE_USER }}
+        mysql password: ${{ secrets.DATABASE_PASSWORD }}
 
     - name: Make migrations
       working-directory: ./TransFarmers
