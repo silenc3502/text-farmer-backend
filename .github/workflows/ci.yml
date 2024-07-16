@@ -109,8 +109,8 @@ jobs:
       id: find_tests
       run: |
         source .venv/bin/activate
-        chmod +x find_test_modules.sh
-        TEST_MODULES=$(./find_test_modules.sh)
+        chmod +x find_test.sh
+        TEST_MODULES=$(./find_test.sh)
         echo "TEST_MODULES=$TEST_MODULES" >> $GITHUB_ENV
 
     - name: Run tests
