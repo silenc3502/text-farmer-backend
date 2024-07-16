@@ -8,6 +8,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.DATABASE_NAME }}
+          MYSQL_USER: ${{ secrets.DATABASE_USER }}
+          MYSQL_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -63,29 +79,13 @@ jobs:
         echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
         echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
 
-    - name: Setup MySQL
-      uses: samin/mysql-action@v1
-      with:
-        character set server: 'utf8'
-        mysql database: ${{ secrets.DATABASE_NAME }}
-        mysql user: ${{ secrets.DATABASE_USER }}
-        mysql password: ${{ secrets.DATABASE_PASSWORD }}
+    - name: Add wait-for-it script
+      run: |
+        wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh
+        chmod +x wait-for-it.sh
 
     - name: Wait for MySQL to be ready
-      working-directory: ./TransFarmers
-      run: |
-        for i in {60..0}; do  # Increased wait time
-          if mysqladmin ping -h "127.0.0.1" --silent; then
-            break
-          fi
-          echo 'MySQL is unavailable - sleeping'
-          sleep 2  # Increased sleep time
-        done
-        if [ "$i" = 0 ]; then
-          echo 'MySQL is still unavailable - exiting'
-          exit 1
-        fi
-        echo 'MySQL is up - continuing'
+      run: ./wait-for-it.sh 127.0.0.1:3306 --timeout=60 --strict -- echo "MySQL is up"
 
     - name: Run migrations
       working-directory: ./TransFarmers
@@ -101,6 +101,12 @@ jobs:
         chmod +x find_test_modules.sh
         TEST_MODULES=$(./find_test_modules.sh)
         echo "TEST_MODULES=$TEST_MODULES" >> $GITHUB_ENV
+
+    - name: Run tests
+      working-directory: ./TransFarmers
+      run: |
+        source .venv/bin/activate
+        python manage.py test $TEST_MODULES
 
     - name: Run tests
       working-directory: ./TransFarmers
