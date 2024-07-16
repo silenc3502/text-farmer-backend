@@ -113,3 +113,10 @@ jobs:
       run: |
         source .venv/bin/activate
         python manage.py test $TEST_MODULES
+
+    - name: send BACKEND_TEST_FINISH_TRIGGER
+      run: |
+        curl -X POST https://api.github.com/repos/${{ github.repository }}/dispatches \
+          -H 'Accept: application/vnd.github.v3+json' \
+          -u ${{ secrets.GHCR_TOKEN }} \
+          -d '{"event_type": "BACKEND_TEST_FINISH_TRIGGER", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'
