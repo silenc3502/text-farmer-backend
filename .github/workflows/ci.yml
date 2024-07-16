@@ -9,6 +9,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Setup MySQL
+      uses: samin/mysql-action@v1
+      with:
+        character set server: 'utf8'
+        mysql database: ${{ secrets.DATABASE_NAME }}
+        mysql user: ${{ secrets.DATABASE_USER }}
+        mysql password: ${{ secrets.DATABASE_PASSWORD }}
+        
     - name: Checkout code
       uses: actions/checkout@v3
 
@@ -63,13 +71,21 @@ jobs:
         echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
         echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
 
-    - name: Setup MySQL
-      uses: samin/mysql-action@v1
-      with:
-        character set server: 'utf8'
-        mysql database: ${{ secrets.DATABASE_NAME }}
-        mysql user: ${{ secrets.DATABASE_USER }}
-        mysql password: ${{ secrets.DATABASE_PASSWORD }}
+    - name: Wait for MySQL to be ready
+      working-directory: ./TransFarmers
+      run: |
+        for i in {60..0}; do  # Increased wait time
+          if mysqladmin ping -h "127.0.0.1" --silent; then
+            break
+          fi
+          echo 'MySQL is unavailable - sleeping'
+          sleep 2  # Increased sleep time
+        done
+        if [ "$i" = 0 ]; then
+          echo 'MySQL is still unavailable - exiting'
+          exit 1
+        fi
+        echo 'MySQL is up - continuing'
 
     - name: Make migrations
       working-directory: ./TransFarmers
