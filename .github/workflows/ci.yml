@@ -23,12 +23,6 @@ jobs:
     - name: List files in current directory
       run: ls -la
 
-    - name: Move to project directory
-      run: cd TransFarmers
-
-    - name: List files in project directory
-      run: ls -la
-
     - name: Cache pip
       uses: actions/cache@v3
       with:
@@ -38,29 +32,36 @@ jobs:
           ${{ runner.os }}-pip-
 
     - name: Install dependencies
+      working-directory: ./TransFarmers
       run: |
-        python -m venv .venv
-        source .venv/bin/activate
-        pip install --upgrade pip
-        pip install -r requirements.txt
+        if [ -f requirements.txt ]; then
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+        else
+          echo "requirements.txt not found. Exiting."
+          exit 1
+        fi
 
     - name: Create .env file for CI Test
+      working-directory: ./TransFarmers
       run: |
-        echo "${{ secrets.CORS_ALLOWED_ORIGINS }}" > .env
-        echo "${{ secrets.CSRF_TRUSTED_ORIGINS }}" >> .env
-        echo "${{ secrets.DATABASE_NAME }}" >> .env
-        echo "${{ secrets.DATABASE_USER }}" >> .env
-        echo "${{ secrets.DATABASE_PASSWORD }}" >> .env
-        echo "${{ secrets.DATABASE_HOST }}" >> .env
-        echo "${{ secrets.DATABASE_PORT }}" >> .env
-        echo "${{ secrets.KAKAO_LOGIN_URL }}" >> .env
-        echo "${{ secrets.KAKAO_CLIENT_ID }}" >> .env
-        echo "${{ secrets.KAKAO_REDIRECT_URI }}" >> .env
-        echo "${{ secrets.KAKAO_TOKEN_REQUEST_URI }}" >> .env
-        echo "${{ secrets.KAKAO_USERINFO_REQUEST_URI }}" >> .env
-        echo "${{ secrets.REDIS_HOST }}" >> .env
-        echo "${{ secrets.REDIS_PORT }}" >> .env
-        echo "${{ secrets.REDIS_PASSWORD }}" >> .env
+        echo "CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}" > .env
+        echo "CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }}" >> .env
+        echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+        echo "DATABASE_USER=${{ secrets.DB_USER }}" >> .env
+        echo "DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+        echo "DATABASE_HOST=127.0.0.1" >> .env
+        echo "DATABASE_PORT=3306" >> .env
+        echo "KAKAO_LOGIN_URL=${{ secrets.KAKAO_LOGIN_URL }}" >> .env
+        echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> .env
+        echo "KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}" >> .env
+        echo "KAKAO_TOKEN_REQUEST_URI=${{ secrets.KAKAO_TOKEN_REQUEST_URI }}" >> .env
+        echo "KAKAO_USERINFO_REQUEST_URI=${{ secrets.KAKAO_USERINFO_REQUEST_URI }}" >> .env
+        echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
+        echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+        echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
 
     - name: Setup MySQL
       uses: samin/mysql-action@v1
