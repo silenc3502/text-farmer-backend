@@ -38,18 +38,6 @@ jobs:
           exit 1
         fi
 
-    - name: Make migrations
-      working-directory: ./TransFarmers
-      run: |
-        source .venv/bin/activate
-        python manage.py makemigrations
-
-    - name: Run migrations
-      working-directory: ./TransFarmers
-      run: |
-        source .venv/bin/activate
-        python manage.py migrate --noinput
-
     - name: Configure Docker
       uses: docker/setup-buildx-action@v1
 
