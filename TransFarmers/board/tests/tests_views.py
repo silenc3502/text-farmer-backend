@@ -6,7 +6,6 @@ from board.entity.models import Board
 from board.service.board_service_impl import BoardServiceImpl
 
 
-# python3 manage.py test board.tests로 테스트 실행
 class BoardViewTest(TestCase):
     @patch('board.service.board_service_impl.BoardRepositoryImpl')
     def testList(self, MockBoardRepositoryImpl):
@@ -33,3 +32,4 @@ class BoardViewTest(TestCase):
         self.assertEqual(result[1].title, "Test Board 2")
 
         mockRepository.list.assert_called_once()
+
