@@ -92,6 +92,12 @@ jobs:
         sudo apt-get install -y mysql-client
         mysql --host=127.0.0.1 --user=${{ secrets.DATABASE_USER }} --password=${{ secrets.DATABASE_PASSWORD }} --database=${{ secrets.DATABASE_NAME }} -e "SHOW TABLES;"
 
+    - name: Make migrations
+      working-directory: ./TransFarmers
+      run: |
+        source .venv/bin/activate
+        python manage.py makemigrations
+
     - name: Run migrations
       working-directory: ./TransFarmers
       run: |
