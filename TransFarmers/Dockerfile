@@ -1,14 +1,14 @@
 # python 3.8 이미지 기반
-FROM python:3.8-slim
+FROM python:3.12
 
 # 작업 디렉토리 설정
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    build-essential \
-    default-libmysqlclient-dev \
-    pkg-config
+# RUN apt-get update && \
+#     apt-get install -y --no-install-recommends \
+#     build-essential \
+#     default-libmysqlclient-dev \
+#     pkg-config
 
 # 필요한 패키지 설치
 COPY requirements.txt /app/
