@@ -78,9 +78,11 @@ jobs:
     - name: Get Github Actions IP
       id: ip
       uses: haythem/public-ip@v1.2
+      with:
+        outputs: ipv4
 
     - name: Save IP to Environment
-      run: echo "IP=${{ steps.ip.outputs.ipv4 }}" >> $GITHUB_ENV
+      run: echo "ipv4=${{ steps.ip.outputs.ipv4 }}" >> $GITHUB_OUTPUT
 
     - name: Configure AWS IAM Credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -91,7 +93,7 @@ jobs:
 
     - name: Add Github Actions IP to Security Group
       run: |
-        aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} --protocol tcp --port 22 --cidr ${{ env.IP }}/32
+        aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
           
     - name: Login to GHCR
       uses: docker/login-action@v1
@@ -120,4 +122,4 @@ jobs:
 
     - name: Remove Github Actions IP From Security Group
       run: |
-        aws ec2 revoke-security-group-ingress --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} --protocol tcp --port 22 --cidr ${{ env.IP }}/32
+        aws ec2 revoke-security-group-ingress --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
